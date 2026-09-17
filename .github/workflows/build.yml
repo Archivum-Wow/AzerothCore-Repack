@@ -2,18 +2,53 @@ name: Build AzerothCore Repacks
 
 on:
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if no new commits'
+        required: false
+        default: false
+        type: boolean
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 6 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   TRACKFILEACCESS: 'false'
 
 jobs:
+  check-updates:
+    name: Check & Update Commits
+    runs-on: windows-2022
+    outputs:
+      ac_changed: ${{ steps.check.outputs.ac_changed }}
+      pb_changed: ${{ steps.check.outputs.pb_changed }}
+      force_build: ${{ steps.check.outputs.force_build }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check and update repo commits
+        id: check
+        shell: pwsh
+        env:
+          FORCE_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.force_build || 'false' }}
+        run: .github/scripts/update-commits.ps1
+
+      - name: Commit and push updated scripts
+        if: steps.check.outputs.ac_changed == 'true' || steps.check.outputs.pb_changed == 'true'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AzerothCore/_sources/download_sources.ps1 PlayerBots/_sources/download_sources.ps1
+          git commit -m "chore(deps): update source commit hashes [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+
   build-azerothcore:
     name: AzerothCore
+    needs: check-updates
+    if: needs.check-updates.outputs.force_build == 'true' || needs.check-updates.outputs.ac_changed == 'true'
     runs-on: windows-2022
 
     steps:
@@ -23,6 +58,8 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
 
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Install Boost
         id: install-boost
@@ -66,6 +103,8 @@ jobs:
 
   build-playerbots:
     name: PlayerBots
+    needs: check-updates
+    if: needs.check-updates.outputs.force_build == 'true' || needs.check-updates.outputs.pb_changed == 'true'
     runs-on: windows-2022
 
     steps:
@@ -75,6 +114,8 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
 
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Install Boost
         id: install-boost

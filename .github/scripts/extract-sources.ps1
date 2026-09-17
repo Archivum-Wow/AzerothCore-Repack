@@ -104,31 +104,21 @@ function Find-ModuleSource {
         [string]$Pattern
     )
 
-    $cmakeMatches = Get-ChildItem `
-        -Path $Path `
-        -Filter "CMakeLists.txt" `
-        -File `
-        -Recurse `
-        -ErrorAction SilentlyContinue |
-        Where-Object {
-            $_.Directory.Name -match $Pattern
-        }
-
-    if ($cmakeMatches) {
-        return ($cmakeMatches | Select-Object -First 1).Directory.FullName
-    }
-
-    $dirMatches = Get-ChildItem `
+    $candidates = Get-ChildItem `
         -Path $Path `
         -Directory `
         -Recurse `
         -ErrorAction SilentlyContinue |
         Where-Object {
-            ($_.Name -match $Pattern) -and (Test-Path (Join-Path $_.FullName "CMakeLists.txt"))
+            ($_.Name -match $Pattern) -and (
+                (Test-Path (Join-Path $_.FullName "CMakeLists.txt")) -or
+                (Test-Path (Join-Path $_.FullName "include.sh")) -or
+                (Test-Path (Join-Path $_.FullName "src"))
+            )
         }
 
-    if ($dirMatches) {
-        return ($dirMatches | Select-Object -First 1).FullName
+    if ($candidates) {
+        return ($candidates | Sort-Object { $_.FullName.Length } -Descending | Select-Object -First 1).FullName
     }
 
     return $null
@@ -137,7 +127,7 @@ function Find-ModuleSource {
 $AleSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]ale"
 
 if (-not $AleSource) {
-    throw "mod-ale source (with CMakeLists.txt) could not be detected in $ExtractRoot."
+    throw "mod-ale source could not be detected in $ExtractRoot."
 }
 
 Write-Host "[OK] mod-ale:"
@@ -149,7 +139,7 @@ if ($Variant -eq "PlayerBots") {
     $PlayerBotsSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]playerbots"
 
     if (-not $PlayerBotsSource) {
-        throw "mod-playerbots source (with CMakeLists.txt) could not be detected in $ExtractRoot."
+        throw "mod-playerbots source could not be detected in $ExtractRoot."
     }
 
     Write-Host "[OK] mod-playerbots:"

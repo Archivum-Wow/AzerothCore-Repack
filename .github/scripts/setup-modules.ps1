@@ -38,9 +38,12 @@ function Copy-Module {
         -Recurse `
         -Force
 
-    $destCmake = Join-Path $Destination "CMakeLists.txt"
-    if (-not (Test-Path $destCmake)) {
-        throw "CMakeLists.txt was not found in module destination: $Destination"
+    $hasCmake = Test-Path (Join-Path $Destination "CMakeLists.txt")
+    $hasInclude = Test-Path (Join-Path $Destination "include.sh")
+    $hasSrc = Test-Path (Join-Path $Destination "src")
+
+    if (-not ($hasCmake -or $hasInclude -or $hasSrc)) {
+        throw "Valid module files (CMakeLists.txt, include.sh, or src/) were not found in: $Destination"
     }
 }
 
