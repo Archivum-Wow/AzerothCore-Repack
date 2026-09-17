@@ -1,0 +1,353 @@
+name: Build AzerothCore Repacks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ================================================================
+  # AZEROTHCORE
+  # ================================================================
+
+  build-azerothcore:
+    name: Build AzerothCore
+    runs-on: windows-latest
+
+    env:
+      SOURCE_SCRIPT: AzerothCore/_sources/download_sources.bat
+      BOOST_VERSION: 1.87.0
+      BOOST_PATH: C:\local\boost_1_87_0
+      MYSQL_VERSION: 8.4.9
+      MYSQL_PATH: C:\tools\mysql\current
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download sources
+        shell: cmd
+        run: call "${{ env.SOURCE_SCRIPT }}"
+
+      - name: Extract sources
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = "$env:GITHUB_WORKSPACE\AzerothCore\_sources"
+          $build = "$env:RUNNER_TEMP\AzerothCore"
+
+          New-Item -ItemType Directory -Force -Path $build | Out-Null
+
+          Get-ChildItem "$root\*.zip" | ForEach-Object {
+              Expand-Archive -LiteralPath $_.FullName -DestinationPath $build -Force
+          }
+
+          $ac = Get-ChildItem $build -Directory -Recurse |
+              Where-Object {
+                  (Test-Path "$($_.FullName)\CMakeLists.txt") -and
+                  (Test-Path "$($_.FullName)\src")
+              } |
+              Select-Object -First 1
+
+          $ale = Get-ChildItem $build -Directory -Recurse |
+              Where-Object { $_.Name -eq "mod-ale" } |
+              Select-Object -First 1
+
+          if (-not $ac) { throw "AzerothCore source not found." }
+          if (-not $ale) { throw "mod-ale source not found." }
+
+          New-Item -ItemType Directory -Force -Path "$($ac.FullName)\modules" | Out-Null
+          Copy-Item $ale.FullName "$($ac.FullName)\modules\mod-ale" -Recurse -Force
+
+          "AC_SOURCE=$($ac.FullName)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # Boost
+          if (-not (Test-Path "$env:BOOST_PATH\boost\version.hpp")) {
+              $installer = "$env:RUNNER_TEMP\boost.exe"
+              $url = "https://downloads.sourceforge.net/project/boost/boost-binaries/$env:BOOST_VERSION/boost_1_87_0-msvc-14.3-64.exe"
+
+              Invoke-WebRequest -Uri $url -OutFile $installer -UserAgent "azerothcore-repack"
+              New-Item -ItemType Directory -Force -Path $env:BOOST_PATH | Out-Null
+
+              $p = Start-Process $installer -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=$env:BOOST_PATH" -Wait -PassThru
+              if ($p.ExitCode -ne 0) { throw "Boost installation failed." }
+          }
+
+          # MySQL client
+          if (-not (Test-Path "$env:MYSQL_PATH\lib\mysqlclient.lib")) {
+              $zip = "$env:RUNNER_TEMP\mysql.zip"
+              $url = "https://cdn.mysql.com/archives/mysql-8.4/mysql-$env:MYSQL_VERSION-winx64.zip"
+
+              Invoke-WebRequest -Uri $url -OutFile $zip -UserAgent "Mozilla/5.0"
+              New-Item -ItemType Directory -Force -Path "C:\tools\mysql" | Out-Null
+              Expand-Archive -LiteralPath $zip -DestinationPath "C:\tools\mysql" -Force
+
+              $src = "C:\tools\mysql\mysql-$env:MYSQL_VERSION-winx64"
+              if (Test-Path $env:MYSQL_PATH) { Remove-Item $env:MYSQL_PATH -Recurse -Force }
+              Rename-Item $src $env:MYSQL_PATH
+          }
+
+          "BOOST_ROOT=$env:BOOST_PATH" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Configure
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\AzerothCore\azerothcore" ^
+            -DBUILD_GAME_SERVER=ON ^
+            -DBUILD_LOGIN_SERVER=ON ^
+            -DBUILD_TOOLS=all ^
+            -DLUA_VERSION=luajit ^
+            -DWITH_WARNINGS=OFF
+
+      - name: Build
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: cmake --build build --config Release --parallel
+
+      - name: Install
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: cmake --install build --config Release
+
+      - name: Prepare repack
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $source = "$env:GITHUB_WORKSPACE\AzerothCore\azerothcore"
+          $target = $source
+
+          New-Item -ItemType Directory -Force -Path "$target\data","$target\logs","$target\temp" | Out-Null
+
+          $required = @(
+              "worldserver.exe",
+              "authserver.exe",
+              "mapextractor.exe",
+              "vmap4extractor.exe",
+              "vmap4assembler.exe",
+              "mmaps_generator.exe"
+          )
+
+          foreach ($name in $required) {
+              $file = Get-ChildItem $source -Filter $name -Recurse |
+                  Select-Object -First 1
+
+              if ($file) {
+                  Copy-Item $file.FullName "$target\$name" -Force
+              }
+              else {
+                  Write-Warning "$name not found."
+              }
+          }
+
+          $lua = Get-ChildItem $env:AC_SOURCE -Directory -Recurse |
+              Where-Object { $_.Name -eq "lua_scripts" } |
+              Select-Object -First 1
+
+          if ($lua) {
+              Copy-Item $lua.FullName "$target\lua_scripts" -Recurse -Force
+          }
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          $zip = "$env:GITHUB_WORKSPACE\AzerothCore-Repack-Windows-x64.zip"
+
+          Compress-Archive `
+            -Path "$env:GITHUB_WORKSPACE\AzerothCore\*" `
+            -DestinationPath $zip `
+            -CompressionLevel Optimal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-Repack-Windows-x64
+          path: AzerothCore-Repack-Windows-x64.zip
+
+
+  # ================================================================
+  # PLAYERBOTS
+  # ================================================================
+
+  build-playerbots:
+    name: Build PlayerBots
+    runs-on: windows-latest
+
+    env:
+      SOURCE_SCRIPT: PlayerBots/_sources/download_sources.bat
+      BOOST_VERSION: 1.82.0
+      BOOST_PATH: C:\local\boost_1_82_0
+      MYSQL_VERSION: 8.4.9
+      MYSQL_PATH: C:\tools\mysql\current
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download sources
+        shell: cmd
+        run: call "${{ env.SOURCE_SCRIPT }}"
+
+      - name: Extract sources
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = "$env:GITHUB_WORKSPACE\PlayerBots\_sources"
+          $build = "$env:RUNNER_TEMP\PlayerBots"
+
+          New-Item -ItemType Directory -Force -Path $build | Out-Null
+
+          Get-ChildItem "$root\*.zip" | ForEach-Object {
+              Expand-Archive -LiteralPath $_.FullName -DestinationPath $build -Force
+          }
+
+          $ac = Get-ChildItem $build -Directory -Recurse |
+              Where-Object {
+                  (Test-Path "$($_.FullName)\CMakeLists.txt") -and
+                  (Test-Path "$($_.FullName)\src")
+              } |
+              Select-Object -First 1
+
+          $ale = Get-ChildItem $build -Directory -Recurse |
+              Where-Object { $_.Name -eq "mod-ale" } |
+              Select-Object -First 1
+
+          $bots = Get-ChildItem $build -Directory -Recurse |
+              Where-Object { $_.Name -eq "mod-playerbots" } |
+              Select-Object -First 1
+
+          if (-not $ac) { throw "PlayerBots AzerothCore source not found." }
+          if (-not $ale) { throw "mod-ale source not found." }
+          if (-not $bots) { throw "mod-playerbots source not found." }
+
+          $modules = "$($ac.FullName)\modules"
+          New-Item -ItemType Directory -Force -Path $modules | Out-Null
+
+          Copy-Item $ale.FullName "$modules\mod-ale" -Recurse -Force
+          Copy-Item $bots.FullName "$modules\mod-playerbots" -Recurse -Force
+
+          "AC_SOURCE=$($ac.FullName)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # Boost 1.82
+          if (-not (Test-Path "$env:BOOST_PATH\boost\version.hpp")) {
+              $installer = "$env:RUNNER_TEMP\boost.exe"
+              $url = "https://downloads.sourceforge.net/project/boost/boost-binaries/$env:BOOST_VERSION/boost_1_82_0-msvc-14.3-64.exe"
+
+              Invoke-WebRequest -Uri $url -OutFile $installer -UserAgent "azerothcore-playerbots"
+              New-Item -ItemType Directory -Force -Path $env:BOOST_PATH | Out-Null
+
+              $p = Start-Process $installer -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=$env:BOOST_PATH" -Wait -PassThru
+              if ($p.ExitCode -ne 0) { throw "Boost installation failed." }
+          }
+
+          # MySQL client
+          if (-not (Test-Path "$env:MYSQL_PATH\lib\mysqlclient.lib")) {
+              $zip = "$env:RUNNER_TEMP\mysql.zip"
+              $url = "https://cdn.mysql.com/archives/mysql-8.4/mysql-$env:MYSQL_VERSION-winx64.zip"
+
+              Invoke-WebRequest -Uri $url -OutFile $zip -UserAgent "Mozilla/5.0"
+              New-Item -ItemType Directory -Force -Path "C:\tools\mysql" | Out-Null
+              Expand-Archive -LiteralPath $zip -DestinationPath "C:\tools\mysql" -Force
+
+              $src = "C:\tools\mysql\mysql-$env:MYSQL_VERSION-winx64"
+              if (Test-Path $env:MYSQL_PATH) { Remove-Item $env:MYSQL_PATH -Recurse -Force }
+              Rename-Item $src $env:MYSQL_PATH
+          }
+
+          "BOOST_ROOT=$env:BOOST_PATH" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Configure
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\PlayerBots\azerothcore" ^
+            -DBUILD_GAME_SERVER=ON ^
+            -DBUILD_LOGIN_SERVER=ON ^
+            -DBUILD_TOOLS=all ^
+            -DLUA_VERSION=luajit ^
+            -DWITH_WARNINGS=OFF
+
+      - name: Build
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: cmake --build build --config Release --parallel
+
+      - name: Install
+        shell: cmd
+        working-directory: ${{ env.AC_SOURCE }}
+        run: cmake --install build --config Release
+
+      - name: Prepare repack
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $target = "$env:GITHUB_WORKSPACE\PlayerBots\azerothcore"
+
+          New-Item -ItemType Directory -Force -Path "$target\data","$target\logs","$target\temp" | Out-Null
+
+          $required = @(
+              "worldserver.exe",
+              "authserver.exe",
+              "mapextractor.exe",
+              "vmap4extractor.exe",
+              "vmap4assembler.exe",
+              "mmaps_generator.exe"
+          )
+
+          foreach ($name in $required) {
+              $file = Get-ChildItem $target -Filter $name -Recurse |
+                  Select-Object -First 1
+
+              if ($file) {
+                  Copy-Item $file.FullName "$target\$name" -Force
+              }
+              else {
+                  Write-Warning "$name not found."
+              }
+          }
+
+          $lua = Get-ChildItem $env:AC_SOURCE -Directory -Recurse |
+              Where-Object { $_.Name -eq "lua_scripts" } |
+              Select-Object -First 1
+
+          if ($lua) {
+              Copy-Item $lua.FullName "$target\lua_scripts" -Recurse -Force
+          }
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          $zip = "$env:GITHUB_WORKSPACE\AzerothCore-PlayerBots-Repack-Windows-x64.zip"
+
+          Compress-Archive `
+            -Path "$env:GITHUB_WORKSPACE\PlayerBots\*" `
+            -DestinationPath $zip `
+            -CompressionLevel Optimal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-PlayerBots-Repack-Windows-x64
+          path: AzerothCore-PlayerBots-Repack-Windows-x64.zip
