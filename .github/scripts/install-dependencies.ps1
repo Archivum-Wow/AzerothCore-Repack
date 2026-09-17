@@ -1,3 +1,20 @@
+﻿<#
+.SYNOPSIS
+    Installe et vérifie toutes les dépendances de compilation.
+
+.DESCRIPTION
+    Ce script :
+      - Installe MySQL (via install_mysql.ps1 du repack)
+      - Vérifie la présence de CMake, Visual Studio, Boost, OpenSSL
+      - Tente une installation de secours de Boost via Chocolatey si absent
+      - Exporte les chemins dans GITHUB_ENV
+
+.PARAMETER Variant
+    Variante cible : "AzerothCore" ou "PlayerBots".
+
+.EXAMPLE
+    .\install-dependencies.ps1 -Variant AzerothCore
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("AzerothCore", "PlayerBots")]
@@ -6,60 +23,56 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Root = $env:GITHUB_WORKSPACE
+$Root       = $env:GITHUB_WORKSPACE
 $RepackRoot = Join-Path $Root $Variant
 
 Write-Host "========================================"
-Write-Host " Installing dependencies: $Variant"
+Write-Host " Installation des dépendances : $Variant"
 Write-Host "========================================"
 
 if (-not (Test-Path $RepackRoot)) {
-    throw "Repack directory not found: $RepackRoot"
+    throw "Dossier du repack introuvable : $RepackRoot"
 }
 
 # ------------------------------------------------------------
 # MySQL
 # ------------------------------------------------------------
-
-$MysqlRoot = Join-Path $RepackRoot "_mysql"
+$MysqlRoot    = Join-Path $RepackRoot "_mysql"
 $MysqlInstall = Join-Path $MysqlRoot "install_mysql.ps1"
-$MysqlServer = Join-Path $MysqlRoot "server"
+$MysqlServer  = Join-Path $MysqlRoot "server"
 
 if (-not (Test-Path $MysqlInstall)) {
-    throw "MySQL installer not found: $MysqlInstall"
+    throw "Installateur MySQL introuvable : $MysqlInstall"
 }
 
 Write-Host ""
-Write-Host "[MySQL] Running existing installer..."
-
+Write-Host "[MySQL] Exécution de l'installateur..."
 & $MysqlInstall -NonInteractive
 
 if (-not (Test-Path $MysqlServer)) {
-    throw "MySQL server directory was not created: $MysqlServer"
+    throw "Le dossier MySQL server n'a pas été créé : $MysqlServer"
 }
 
-Write-Host "[OK] MySQL: $MysqlServer"
+Write-Host "[OK] MySQL : $MysqlServer"
 
 # ------------------------------------------------------------
 # CMake
 # ------------------------------------------------------------
-
 $cmake = Get-Command cmake -ErrorAction SilentlyContinue
 
 if (-not $cmake) {
-    throw "CMake was not found on the GitHub runner."
+    throw "CMake est introuvable sur le runner."
 }
 
-Write-Host "[OK] CMake: $(& cmake --version | Select-Object -First 1)"
+Write-Host "[OK] CMake : $(& cmake --version | Select-Object -First 1)"
 
 # ------------------------------------------------------------
 # Visual Studio
 # ------------------------------------------------------------
-
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 
 if (-not (Test-Path $vswhere)) {
-    throw "vswhere.exe was not found."
+    throw "vswhere.exe est introuvable."
 }
 
 $vsPath = & $vswhere `
@@ -69,15 +82,14 @@ $vsPath = & $vswhere `
     -property installationPath
 
 if (-not $vsPath) {
-    throw "Visual Studio C++ build tools were not found."
+    throw "Les outils de build C++ de Visual Studio sont introuvables."
 }
 
-Write-Host "[OK] Visual Studio: $vsPath"
+Write-Host "[OK] Visual Studio : $vsPath"
 
 # ------------------------------------------------------------
 # Boost
 # ------------------------------------------------------------
-
 $boostRoot = $env:BOOST_ROOT
 
 if (-not $boostRoot) {
@@ -100,7 +112,7 @@ if (-not $boostRoot) {
 }
 
 if (-not $boostRoot) {
-    Write-Host "[Boost] Not found in environment or default paths. Installing boost-msvc-14.3 via Chocolatey..."
+    Write-Host "[Boost] Introuvable. Tentative d'installation via Chocolatey..."
     $choco = Get-Command choco -ErrorAction SilentlyContinue
     if ($choco) {
         & choco install boost-msvc-14.3 -y --no-progress
@@ -115,38 +127,34 @@ if (-not $boostRoot) {
 }
 
 if (-not $boostRoot) {
-    throw "BOOST_ROOT was not found on the runner, and automatic fallback installation failed."
+    throw "BOOST_ROOT est introuvable et l'installation de secours a échoué."
 }
 
 $env:BOOST_ROOT = $boostRoot
-
-Write-Host "[OK] Boost: $boostRoot"
+Write-Host "[OK] Boost : $boostRoot"
 
 # ------------------------------------------------------------
 # OpenSSL
 # ------------------------------------------------------------
-
 $openssl = Get-Command openssl -ErrorAction SilentlyContinue
 
 if ($openssl) {
-    Write-Host "[OK] OpenSSL: $(& openssl version)"
+    Write-Host "[OK] OpenSSL : $(& openssl version)"
 }
 else {
-    Write-Warning "OpenSSL executable was not found in PATH."
-    Write-Warning "CMake will try to locate the installed OpenSSL environment."
+    Write-Warning "OpenSSL est absent du PATH."
+    Write-Warning "CMake tentera de localiser l'installation système."
 }
 
 # ------------------------------------------------------------
-# Export paths for following GitHub Actions steps
+# Export pour les étapes suivantes
 # ------------------------------------------------------------
-
 $boostForward = $boostRoot.Replace("\", "/").TrimEnd("/")
 "BOOST_ROOT=$boostForward" | Out-File -FilePath $env:GITHUB_ENV -Append
 
 $mysqlForward = $MysqlServer.Replace("\", "/")
 "MYSQL_ROOT_DIR=$mysqlForward" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-"MYSQL_DIR=$mysqlForward" | Out-File -FilePath $env:GITHUB_ENV -Append
+"MYSQL_DIR=$mysqlForward"      | Out-File -FilePath $env:GITHUB_ENV -Append
 
 Write-Host ""
-Write-Host "[OK] Dependency setup completed."
+Write-Host "[OK] Installation des dépendances terminée."

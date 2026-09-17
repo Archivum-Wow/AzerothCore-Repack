@@ -1,3 +1,19 @@
+﻿<#
+.SYNOPSIS
+    Installe les modules AzerothCore dans le dossier "modules" du source.
+
+.DESCRIPTION
+    Ce script copie mod-ale et, pour la variante PlayerBots, mod-playerbots
+    dans le dossier "modules" du code source AzerothCore.
+
+    Chaque module est validé après copie (CMakeLists.txt OU include.sh OU src/).
+
+.PARAMETER Variant
+    Variante cible : "AzerothCore" ou "PlayerBots".
+
+.EXAMPLE
+    .\setup-modules.ps1 -Variant AzerothCore
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("AzerothCore", "PlayerBots")]
@@ -9,9 +25,12 @@ $ErrorActionPreference = "Stop"
 $Modules = Join-Path $env:CORE_SOURCE "modules"
 
 if (-not (Test-Path $Modules)) {
-    throw "AzerothCore modules directory not found: $Modules"
+    throw "Dossier modules introuvable : $Modules"
 }
 
+# ------------------------------------------------------------
+# Fonction utilitaire : copie + validation d'un module
+# ------------------------------------------------------------
 function Copy-Module {
     param(
         [string]$Source,
@@ -19,7 +38,7 @@ function Copy-Module {
     )
 
     if (-not (Test-Path $Source)) {
-        throw "Module source not found: $Source"
+        throw "Source du module introuvable : $Source"
     }
 
     $Destination = Join-Path $Modules $Name
@@ -30,7 +49,7 @@ function Copy-Module {
 
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
 
-    Write-Host "[Module] Installing $Name from $Source into $Destination..."
+    Write-Host "[Module] Installation de $Name depuis $Source..."
 
     Copy-Item `
         -Path "$Source\*" `
@@ -38,15 +57,19 @@ function Copy-Module {
         -Recurse `
         -Force
 
-    $hasCmake = Test-Path (Join-Path $Destination "CMakeLists.txt")
+    # Vérification : le module doit contenir au moins un marqueur valide
+    $hasCmake   = Test-Path (Join-Path $Destination "CMakeLists.txt")
     $hasInclude = Test-Path (Join-Path $Destination "include.sh")
-    $hasSrc = Test-Path (Join-Path $Destination "src")
+    $hasSrc     = Test-Path (Join-Path $Destination "src")
 
     if (-not ($hasCmake -or $hasInclude -or $hasSrc)) {
-        throw "Valid module files (CMakeLists.txt, include.sh, or src/) were not found in: $Destination"
+        throw "Le module $Name ne contient aucun fichier valide dans : $Destination"
     }
 }
 
+# ------------------------------------------------------------
+# Installation des modules
+# ------------------------------------------------------------
 Copy-Module $env:ALE_SOURCE "mod-ale"
 
 if ($Variant -eq "PlayerBots") {
@@ -54,8 +77,6 @@ if ($Variant -eq "PlayerBots") {
 }
 
 Write-Host ""
-Write-Host "[OK] Modules installed in: $Modules"
+Write-Host "[OK] Modules installés dans : $Modules"
 Get-ChildItem $Modules -Directory |
-    ForEach-Object {
-        Write-Host "  - $($_.Name)"
-    }
+    ForEach-Object { Write-Host "  - $($_.Name)" }

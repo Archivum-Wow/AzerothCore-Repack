@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $Root = $PSScriptRoot
 $MysqlServer = Join-Path $Root "server"

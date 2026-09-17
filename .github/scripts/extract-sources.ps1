@@ -1,3 +1,22 @@
+﻿<#
+.SYNOPSIS
+    Télécharge et extrait les sources AzerothCore + modules.
+
+.DESCRIPTION
+    Ce script :
+      - Exécute download_sources.ps1 qui télécharge les ZIP des dépôts
+      - Extrait chaque ZIP dans un sous-dossier dédié
+      - Supprime chaque ZIP immédiatement après extraction
+      - Détecte automatiquement le dossier AzerothCore (CMakeLists.txt + src/)
+      - Détecte automatiquement mod-ale et mod-playerbots
+      - Exporte les chemins dans GITHUB_ENV pour les étapes suivantes
+
+.PARAMETER Variant
+    Variante à extraire : "AzerothCore" ou "PlayerBots".
+
+.EXAMPLE
+    .\extract-sources.ps1 -Variant AzerothCore
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("AzerothCore", "PlayerBots")]
@@ -6,55 +25,73 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Root = $env:GITHUB_WORKSPACE
-$RepackRoot = Join-Path $Root $Variant
-$SourcesRoot = Join-Path $RepackRoot "_sources"
+# ------------------------------------------------------------
+# Résolution des chemins
+# ------------------------------------------------------------
+$Root           = $env:GITHUB_WORKSPACE
+$RepackRoot     = Join-Path $Root $Variant
+$SourcesRoot    = Join-Path $RepackRoot "_sources"
 $DownloadScript = Join-Path $SourcesRoot "download_sources.ps1"
 
 Write-Host "========================================"
-Write-Host " Extracting sources: $Variant"
+Write-Host " Extraction des sources : $Variant"
 Write-Host "========================================"
 
 if (-not (Test-Path $DownloadScript)) {
-    throw "Source download script not found: $DownloadScript"
+    throw "Script de téléchargement introuvable : $DownloadScript"
 }
 
-Write-Host "[Sources] Running download_sources.ps1..."
-
+# ------------------------------------------------------------
+# Téléchargement des archives
+# ------------------------------------------------------------
+Write-Host "[Sources] Exécution de download_sources.ps1..."
 & $DownloadScript -NonInteractive
 
 $zipFiles = Get-ChildItem $SourcesRoot -Filter "*.zip" -File
 
 if ($zipFiles.Count -eq 0) {
-    throw "No source ZIP files were found in $SourcesRoot"
+    throw "Aucun fichier ZIP trouvé dans $SourcesRoot"
 }
 
-$ExtractRoot = if ($env:GITHUB_ACTIONS) { "C:\ac_src" } else { Join-Path $SourcesRoot "_extracted" }
+# ------------------------------------------------------------
+# Dossier d'extraction
+# En CI on extrait hors du workspace pour éviter les problèmes de chemin long
+# ------------------------------------------------------------
+$ExtractRoot = if ($env:GITHUB_ACTIONS) {
+    "C:\ac_src"
+} else {
+    Join-Path $SourcesRoot "_extracted"
+}
 
 if (Test-Path $ExtractRoot) {
     Remove-Item $ExtractRoot -Recurse -Force
 }
-
 New-Item -ItemType Directory -Path $ExtractRoot | Out-Null
 
+# ------------------------------------------------------------
+# Extraction + suppression immédiate des ZIPs
+# ------------------------------------------------------------
 foreach ($zip in $zipFiles) {
     Write-Host ""
     Write-Host "[Extract] $($zip.Name)"
 
     $destination = Join-Path $ExtractRoot ([IO.Path]::GetFileNameWithoutExtension($zip.Name))
-
     New-Item -ItemType Directory -Path $destination | Out-Null
 
     Expand-Archive `
         -Path $zip.FullName `
         -DestinationPath $destination `
         -Force
+
+    # Suppression immédiate : évite que les ZIPs se retrouvent dans le repack
+    Remove-Item $zip.FullName -Force
+    Write-Host "[Cleanup] ZIP supprimé : $($zip.Name)"
 }
 
 # ------------------------------------------------------------
-# Find AzerothCore source
+# Détection du dossier source AzerothCore
+# Critères : présence de CMakeLists.txt ET d'un sous-dossier src/
 # ------------------------------------------------------------
-
 function Find-AzerothCoreSource {
     param([string]$Path)
 
@@ -82,22 +119,22 @@ $CoreSource = Find-AzerothCoreSource $ExtractRoot
 
 if (-not $CoreSource) {
     Write-Host ""
-    Write-Host "Extracted files:"
+    Write-Host "Dossiers extraits :"
     Get-ChildItem $ExtractRoot -Recurse -Directory |
         Select-Object -First 100 |
         ForEach-Object { Write-Host "  $($_.FullName)" }
 
-    throw "AzerothCore source could not be detected."
+    throw "Impossible de détecter les sources AzerothCore."
 }
 
 Write-Host ""
-Write-Host "[OK] AzerothCore source:"
+Write-Host "[OK] Source AzerothCore :"
 Write-Host "     $CoreSource"
 
 # ------------------------------------------------------------
-# Find modules
+# Détection générique d'un module
+# Critères : CMakeLists.txt OU include.sh OU dossier src/
 # ------------------------------------------------------------
-
 function Find-ModuleSource {
     param(
         [string]$Path,
@@ -118,7 +155,10 @@ function Find-ModuleSource {
         }
 
     if ($candidates) {
-        return ($candidates | Sort-Object { $_.FullName.Length } -Descending | Select-Object -First 1).FullName
+        # On prend le chemin le plus profond (le plus spécifique)
+        return ($candidates |
+            Sort-Object { $_.FullName.Length } -Descending |
+            Select-Object -First 1).FullName
     }
 
     return $null
@@ -127,10 +167,10 @@ function Find-ModuleSource {
 $AleSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]ale"
 
 if (-not $AleSource) {
-    throw "mod-ale source could not be detected in $ExtractRoot."
+    throw "Impossible de détecter mod-ale dans $ExtractRoot."
 }
 
-Write-Host "[OK] mod-ale:"
+Write-Host "[OK] mod-ale :"
 Write-Host "     $AleSource"
 
 $PlayerBotsSource = $null
@@ -139,31 +179,41 @@ if ($Variant -eq "PlayerBots") {
     $PlayerBotsSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]playerbots"
 
     if (-not $PlayerBotsSource) {
-        throw "mod-playerbots source could not be detected in $ExtractRoot."
+        throw "Impossible de détecter mod-playerbots dans $ExtractRoot."
     }
 
-    Write-Host "[OK] mod-playerbots:"
+    Write-Host "[OK] mod-playerbots :"
     Write-Host "     $PlayerBotsSource"
 }
 
 # ------------------------------------------------------------
-# Export paths
+# Export des chemins dans GITHUB_ENV (slash-forward pour CMake)
 # ------------------------------------------------------------
-
 $coreForward = "$CoreSource".Replace("\", "/")
-$aleForward = "$AleSource".Replace("\", "/")
+$aleForward  = "$AleSource".Replace("\", "/")
 
 "CORE_SOURCE=$coreForward" | Out-File $env:GITHUB_ENV -Append
-"ALE_SOURCE=$aleForward" | Out-File $env:GITHUB_ENV -Append
+"ALE_SOURCE=$aleForward"   | Out-File $env:GITHUB_ENV -Append
 
 if ($PlayerBotsSource) {
     $pbForward = "$PlayerBotsSource".Replace("\", "/")
     "PLAYERBOTS_SOURCE=$pbForward" | Out-File $env:GITHUB_ENV -Append
 }
 
-$buildDir = if ($env:GITHUB_ACTIONS) { "C:\ac_build" } else { Join-Path $CoreSource "build" }
+# Le dossier de build est déterminé ici pour être cohérent partout
+$buildDir = if ($env:GITHUB_ACTIONS) {
+    "C:\ac_build"
+} else {
+    Join-Path $CoreSource "build"
+}
 $buildForward = $buildDir.Replace("\", "/")
 "CORE_BUILD=$buildForward" | Out-File $env:GITHUB_ENV -Append
 
+# ------------------------------------------------------------
+# Nettoyage final : suppression des ZIPs résiduels dans _sources
+# ------------------------------------------------------------
+Get-ChildItem -Path $SourcesRoot -Filter "*.zip" -File -Recurse -ErrorAction SilentlyContinue |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+
 Write-Host ""
-Write-Host "[OK] Source extraction completed."
+Write-Host "[OK] Extraction des sources terminée."
