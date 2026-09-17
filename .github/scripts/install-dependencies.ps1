@@ -135,7 +135,8 @@ else {
 # Export paths for following GitHub Actions steps
 # ------------------------------------------------------------
 
-"BOOST_ROOT=$boostRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+$boostForward = $boostRoot.Replace("\", "/").TrimEnd("/")
+"BOOST_ROOT=$boostForward" | Out-File -FilePath $env:GITHUB_ENV -Append
 
 $mysqlForward = $MysqlServer.Replace("\", "/")
 "MYSQL_ROOT_DIR=$mysqlForward" | Out-File -FilePath $env:GITHUB_ENV -Append

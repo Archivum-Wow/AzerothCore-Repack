@@ -33,6 +33,11 @@ try {
         "-DMYSQL_ROOT_DIR=$env:MYSQL_ROOT_DIR"
     )
 
+    if ($env:BOOST_ROOT) {
+        $args += "-DBOOST_ROOT=$($env:BOOST_ROOT.Replace('\', '/').TrimEnd('/'))"
+        $args += "-DBoost_NO_BOOST_CMAKE=ON"
+    }
+
     Write-Host "[CMake] Configuring..."
 
     & cmake @args

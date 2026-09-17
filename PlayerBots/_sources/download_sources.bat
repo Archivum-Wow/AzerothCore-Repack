@@ -62,7 +62,7 @@ echo.
 
 "%CURL%" -L --fail ^
     "https://github.com/mod-playerbots/mod-playerbots/archive/%PB_COMMIT%.zip" ^
-    -o "%SOURCES%mod-ale.zip"
+    -o "%SOURCES%mod-playerbots.zip"
 
 if errorlevel 1 (
     echo.
@@ -77,9 +77,9 @@ echo ========================================
 echo   Downloads completed
 echo ========================================
 echo.
-echo [OK] AzerothCore : %SOURCES%azerothcore-wotlk.zip
-echo [OK] mod-ale     : %SOURCES%mod-ale.zip
-echo [OK] mod-ale     : %SOURCES%mod-playerbots.zip
+echo [OK] AzerothCore     : %SOURCES%azerothcore-wotlk.zip
+echo [OK] mod-ale         : %SOURCES%mod-ale.zip
+echo [OK] mod-playerbots  : %SOURCES%mod-playerbots.zip
 echo.
 
 endlocal

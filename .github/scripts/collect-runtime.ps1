@@ -74,6 +74,35 @@ Get-ChildItem `
             -Force
     }
 
+# Copy libmysql.dll from MySQL server if not already in runtime
+$runtimeMysqlDll = Join-Path $Runtime "libmysql.dll"
+if (-not (Test-Path $runtimeMysqlDll)) {
+    $mysqlLibDll = Join-Path $RepackRoot "_mysql\server\lib\libmysql.dll"
+    if (Test-Path $mysqlLibDll) {
+        Copy-Item $mysqlLibDll $runtimeMysqlDll -Force
+        Write-Host "[DLL] Copied libmysql.dll"
+    }
+}
+
+# Copy OpenSSL DLLs if missing
+$opensslCandidates = @(
+    "C:\Program Files\OpenSSL\bin",
+    "C:\Program Files\OpenSSL-Win64\bin",
+    "C:\OpenSSL-Win64\bin"
+)
+foreach ($dir in $opensslCandidates) {
+    if (Test-Path $dir) {
+        Get-ChildItem -Path $dir -Filter "*.dll" -File | ForEach-Object {
+            $dest = Join-Path $Runtime $_.Name
+            if (-not (Test-Path $dest)) {
+                Copy-Item $_.FullName $dest -Force
+                Write-Host "[DLL] Copied $($_.Name)"
+            }
+        }
+        break
+    }
+}
+
 Write-Host "[OK] DLLs copied."
 
 # ------------------------------------------------------------

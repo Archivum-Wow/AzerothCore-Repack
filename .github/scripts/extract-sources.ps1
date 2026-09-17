@@ -148,7 +148,7 @@ if ($Variant -eq "PlayerBots") {
 # Export paths
 # ------------------------------------------------------------
 
-$coreForward = $CoreSource.FullName.Replace("\", "/")
+$coreForward = "$CoreSource".Replace("\", "/")
 $aleForward = $AleSource.FullName.Replace("\", "/")
 
 "CORE_SOURCE=$coreForward" | Out-File $env:GITHUB_ENV -Append

@@ -11,10 +11,17 @@ permissions:
 jobs:
   build-azerothcore:
     name: AzerothCore
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Boost
+        uses: MarkusJx/install-boost@v2
+        with:
+          boost_version: '1.83.0'
+          platform_version: 2022
+          toolset: msvc
 
       - name: Dependencies
         shell: pwsh
@@ -48,10 +55,17 @@ jobs:
 
   build-playerbots:
     name: PlayerBots
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Boost
+        uses: MarkusJx/install-boost@v2
+        with:
+          boost_version: '1.83.0'
+          platform_version: 2022
+          toolset: msvc
 
       - name: Dependencies
         shell: pwsh

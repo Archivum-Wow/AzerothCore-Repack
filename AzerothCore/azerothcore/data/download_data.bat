@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 
-set "ROOT=%~dp0.."
+set "ROOT=%~dp0..\.."
 set "DATA=%~dp0"
 set "CURL=%ROOT%\_tools\curl-8.22.0_1-win64-mingw\curl.exe"
 set "ZIP=%DATA%Data.zip"
