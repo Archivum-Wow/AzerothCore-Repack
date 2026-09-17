@@ -98,40 +98,62 @@ Write-Host "     $CoreSource"
 # Find modules
 # ------------------------------------------------------------
 
-$ModuleCandidates = Get-ChildItem `
-    -Path $ExtractRoot `
-    -Directory `
-    -Recurse `
-    -ErrorAction SilentlyContinue
+function Find-ModuleSource {
+    param(
+        [string]$Path,
+        [string]$Pattern
+    )
 
-$AleSource = $ModuleCandidates |
-    Where-Object {
-        $_.Name -match "^mod[-_]ale$"
-    } |
-    Select-Object -First 1
+    $cmakeMatches = Get-ChildItem `
+        -Path $Path `
+        -Filter "CMakeLists.txt" `
+        -File `
+        -Recurse `
+        -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Directory.Name -match $Pattern
+        }
+
+    if ($cmakeMatches) {
+        return ($cmakeMatches | Select-Object -First 1).Directory.FullName
+    }
+
+    $dirMatches = Get-ChildItem `
+        -Path $Path `
+        -Directory `
+        -Recurse `
+        -ErrorAction SilentlyContinue |
+        Where-Object {
+            ($_.Name -match $Pattern) -and (Test-Path (Join-Path $_.FullName "CMakeLists.txt"))
+        }
+
+    if ($dirMatches) {
+        return ($dirMatches | Select-Object -First 1).FullName
+    }
+
+    return $null
+}
+
+$AleSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]ale"
 
 if (-not $AleSource) {
-    throw "mod-ale source could not be detected."
+    throw "mod-ale source (with CMakeLists.txt) could not be detected in $ExtractRoot."
 }
 
 Write-Host "[OK] mod-ale:"
-Write-Host "     $($AleSource.FullName)"
+Write-Host "     $AleSource"
 
 $PlayerBotsSource = $null
 
 if ($Variant -eq "PlayerBots") {
-    $PlayerBotsSource = $ModuleCandidates |
-        Where-Object {
-            $_.Name -match "^mod[-_]playerbots$"
-        } |
-        Select-Object -First 1
+    $PlayerBotsSource = Find-ModuleSource -Path $ExtractRoot -Pattern "mod[-_]playerbots"
 
     if (-not $PlayerBotsSource) {
-        throw "mod-playerbots source could not be detected."
+        throw "mod-playerbots source (with CMakeLists.txt) could not be detected in $ExtractRoot."
     }
 
     Write-Host "[OK] mod-playerbots:"
-    Write-Host "     $($PlayerBotsSource.FullName)"
+    Write-Host "     $PlayerBotsSource"
 }
 
 # ------------------------------------------------------------
@@ -139,13 +161,13 @@ if ($Variant -eq "PlayerBots") {
 # ------------------------------------------------------------
 
 $coreForward = "$CoreSource".Replace("\", "/")
-$aleForward = $AleSource.FullName.Replace("\", "/")
+$aleForward = "$AleSource".Replace("\", "/")
 
 "CORE_SOURCE=$coreForward" | Out-File $env:GITHUB_ENV -Append
 "ALE_SOURCE=$aleForward" | Out-File $env:GITHUB_ENV -Append
 
 if ($PlayerBotsSource) {
-    $pbForward = $PlayerBotsSource.FullName.Replace("\", "/")
+    $pbForward = "$PlayerBotsSource".Replace("\", "/")
     "PLAYERBOTS_SOURCE=$pbForward" | Out-File $env:GITHUB_ENV -Append
 }
 

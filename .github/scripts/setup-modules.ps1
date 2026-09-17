@@ -28,13 +28,20 @@ function Copy-Module {
         Remove-Item $Destination -Recurse -Force
     }
 
-    Write-Host "[Module] Installing $Name..."
+    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+
+    Write-Host "[Module] Installing $Name from $Source into $Destination..."
 
     Copy-Item `
-        -Path $Source `
+        -Path "$Source\*" `
         -Destination $Destination `
         -Recurse `
         -Force
+
+    $destCmake = Join-Path $Destination "CMakeLists.txt"
+    if (-not (Test-Path $destCmake)) {
+        throw "CMakeLists.txt was not found in module destination: $Destination"
+    }
 }
 
 Copy-Module $env:ALE_SOURCE "mod-ale"

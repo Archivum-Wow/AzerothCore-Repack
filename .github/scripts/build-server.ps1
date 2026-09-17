@@ -34,7 +34,8 @@ try {
         "-G", "Visual Studio 17 2022"
         "-A", "x64"
         "-DCMAKE_BUILD_TYPE=Release"
-        "-DBUILD_TOOLS=all"
+        "-DAPPS_BUILD=all"
+        "-DTOOLS_BUILD=all"
         "-DLUA_VERSION=luajit"
         "-DMYSQL_ROOT_DIR=$env:MYSQL_ROOT_DIR"
     )
