@@ -1,67 +1,78 @@
-# ⚔️ AzerothCore Repack - Windows x64 (WotLK 3.3.5a)
+# ⚔️ AzerothCore Repack
 
 <div align="center">
 
-[![WoW Version](https://img.shields.io/badge/WoW-3.3.5a%20(12340)-gold?style=for-the-badge&logo=battlenet&logoColor=white)](https://github.com/azerothcore/azerothcore-wotlk)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20x64-informational?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com)
+[![WoW Version](https://img.shields.io/badge/WoW-3.3.5a-gold?style=for-the-badge&logo=battlenet&logoColor=white)](https://github.com/azerothcore/azerothcore-wotlk)
+[![Platform](https://img.shields.io/badge/Windows-x64-informational?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com)
 
-Bienvenue sur le **Repack AzerothCore 100% portable** pour Windows !<br>
-Ce projet vous permet de lancer votre propre serveur privé **World of Warcraft : Wrath of the Lich King (3.3.5a)** en quelques clics, **sans aucune connaissance technique requise**.
+**Votre serveur World of Warcraft privé, en 10 minutes.**
 
-Tout est automatisé : la base de données est autonome (rien à installer), et un menu simple vous guide du début à la fin.
+Pas d'installation compliquée. Pas de ligne de commande. Juste quelques clics.
 
 </div>
 
 ---
 
-<br>
+## 👋 C'est quoi ce truc ?
 
-## 🎯 Choisissez votre version
+Ce dossier contient **tout ce qu'il faut** pour faire tourner votre propre serveur **World of Warcraft : Wrath of the Lich King (3.3.5a)** sur votre PC.
 
-Deux déclinaisons compilées et mises à jour automatiquement sont disponibles :
+Vous téléchargez, vous double-cliquez sur un fichier, vous suivez le menu. C'est tout.
 
-| Version | Description | Idéal pour... |
+> 💡 **Pas besoin d'être informaticien.** Si vous savez ouvrir un fichier ZIP et suivre un menu, vous savez faire.
+
+---
+
+## 🎁 Quelle version choisir ?
+
+Il y a **deux versions**. Prenez celle qui vous correspond :
+
+| Version | En résumé | Pour qui ? |
 | :--- | :--- | :--- |
-| **🛡️ AzerothCore Standard** | Le cœur AzerothCore officiel + moteur de script **Eluna (mod-ale)**. Expérience fidèle et authentique. | Ceux qui veulent jouer normalement, tester des quêtes ou coder des scripts Lua. |
-| **🤖 AzerothCore PlayerBots** | Intègre AzerothCore + **mod-ale** + **mod-playerbots**. Des bots autonomes parcourent le monde, groupent avec vous, font des donjons et du PvP ! | **Le jeu 100% solo** ou en petit comité d'amis avec un monde plein de vie. |
+| 🛡️ **Standard** | Le serveur WoW classique. | Vous voulez jouer **normalement**, comme sur un vrai serveur. |
+| 🤖 **PlayerBots** | Le serveur classique **+ des bots** qui peuplent le monde (ils font des quêtes, des donjons, du PvP). | Vous voulez jouer **seul ou à deux**, mais avec un monde qui vit autour de vous. |
+
+> ❓ **Vous hésitez ?** Prenez la version **PlayerBots**. Elle contient tout ce que fait la Standard, plus les bots.
 
 ---
 
-<br>
+## 🚀 Les 5 étapes (pour débutants)
 
-## 🚀 Guide pas-à-pas pour les débutants
+### 📥 Étape 1 — Télécharger
 
-Suivez ces 5 étapes simples pour jouer en moins de 10 minutes !
+1. Allez sur la page **Releases** du projet (lien dans la colonne de droite sur GitHub).
+2. Téléchargez le fichier **ZIP** correspondant à votre version :
+   * `AzerothCore-Repack-Windows-x64.zip` (Standard)
+   * `AzerothCore-PlayerBots-Repack-Windows-x64.zip` (PlayerBots)
 
-### Étape 1 : Télécharger le Repack
-1. Rendez-vous sur la page GitHub du projet.
-2. Dans la colonne de droite, cliquez sur **Releases** (ou [cliquez ici pour y accéder directement](../../releases)).
-3. Sous la dernière version publiée (Latest), téléchargez le fichier **ZIP** de votre choix :
-   * `AzerothCore-Repack-Windows-x64.zip` (version classique)
-   * `AzerothCore-PlayerBots-Repack-Windows-x64.zip` (version avec PlayerBots)
+> ⏳ Le fichier fait environ 500 Mo à 1 Go. Le téléchargement peut prendre quelques minutes.
 
 ---
 
-<br>
+### 📦 Étape 2 — Extraire le ZIP
 
-### Étape 2 : Extraire l'archive
-1. Faites un clic droit sur le fichier ZIP téléchargé > **Extraire tout...**
-2. Choisissez un dossier simple sur votre disque dur.
-   > 💡 **Conseil :** Évitez les dossiers avec des espaces bizarres ou des caractères accentués.  
-   > *Exemple recommandé :* `C:\Jeux\WoW-Repack` ou `D:\AzerothCore`
+1. **Clic droit** sur le fichier ZIP → **Extraire tout…**
+2. Choisissez un dossier **simple**, par exemple :
+   * `C:\AzerothCore`
+   * `D:\WoW-Repack`
+
+> ⚠️ **Évitez** les dossiers avec des accents, des espaces bizarres, ou qui sont dans `Téléchargements` / `Bureau`. Prenez un dossier à la racine du disque (C: ou D:).
 
 ---
 
-<br>
+### 🖱️ Étape 3 — Lancer le menu
 
-### Étape 3 : Lancer le panneau de contrôle
-Dans le dossier extrait, double-cliquez sur :
-```text
+Dans le dossier que vous venez d'extraire, **double-cliquez** sur :
+
+```
 AzerothCore Repack.bat
 ```
-Une fenêtre s'ouvre avec un menu interactif :
 
-```text
+Une fenêtre noire s'ouvre avec un menu. **C'est normal, c'est le panneau de contrôle.**
+
+Vous verrez ceci :
+
+```
  ╔══════════════════════════════════════════════════════════════╗
  ║                 A Z E R O T H C O R E                        ║
  ║                         R E P A C K                          ║
@@ -72,121 +83,143 @@ Une fenêtre s'ouvre avec un menu interactif :
       3.  Quitter
 ```
 
----
-
-<br>
-
-### Étape 4 : Première installation (À faire une seule fois !)
-Tapez `1` puis validez avec la touche **Entrée** pour accéder au sous-menu **Installations** :
-
-1. **Installer MySQL :**  
-   Tapez `1` : un script installe automatiquement un serveur de base de données MySQL 8.4 portable et indépendant. Patientez jusqu'au message de confirmation.
-2. **Télécharger les Data (Maps, DBC, etc.) :**  
-   Tapez `3` : le script va télécharger les données nécessaires (fichiers DBC, Maps, VMaps et MMaps).  
-   *(Ce téléchargement fait environ 1 Go, laissez-le se terminer tranquillement).*
-3. Tapez `4` pour revenir au menu principal.
+> 💡 **Comment répondre ?** Tapez le chiffre voulu au clavier, puis appuyez sur **Entrée**.
 
 ---
 
-<br>
+### ⚙️ Étape 4 — Première installation (une seule fois !)
 
-### Étape 5 : Lancer le serveur et jouer !
+Tapez **`1`** puis **Entrée** pour ouvrir le menu **Installations**.
 
-1. Depuis le menu principal, tapez **`2`** (**Démarrer le serveur AzerothCore**).
-2. Trois fenêtres vont s'ouvrir automatiquement :
-   * 🟢 **MySQL Server** (la base de données)
-   * 🔵 **AuthServer** (le serveur d'authentification et de connexion des comptes)
-   * 🟣 **WorldServer** (le monde de jeu AzerothCore)
-3. Attendez environ 30 secondes que la fenêtre **WorldServer** affiche :
-   ```text
-   AzerothCore rev. [...] ready...
-   ```
-4. **Créer votre compte de jeu :**  
-   Dans la fenêtre de **WorldServer**, tapez directement :
-   ```text
-   account create VOTRE_NOM VOTRE_MOT_DE_PASSE
-   ```
-   *(Pour vous donner les pleins pouvoirs Maître de Jeu / GM, tapez ensuite :)*
-   ```text
-   account set gmlevel VOTRE_NOM 3 -1
-   ```
+Vous arrivez ici :
 
----
+```
+      1.  Installation de MySQL
+      2.  Téléchargement des sources AzerothCore
+      3.  Téléchargement des Data AzerothCore
+      4.  Retour
+```
 
-<br>
+Faites ces **3 choses**, dans cet ordre :
 
-## 🎮 Configurer votre jeu World of Warcraft (Client 3.3.5a)
+**1️⃣ Tapez `1` — Installation de MySQL**
 
-Pour vous connecter au serveur depuis votre client World of Warcraft :
+Une fenêtre s'ouvre, MySQL s'installe tout seul. Attendez le message de fin. Fermez la fenêtre quand c'est terminé.
 
-1. Ouvrez votre dossier de jeu World of Warcraft 3.3.5a.
-2. Allez dans le dossier `Data` puis `frFR` (ou `enUS` / `enGB` selon la langue de votre jeu).
-3. Ouvrez le fichier **`realmlist.wtf`** avec le Bloc-notes.
-4. Supprimez tout son contenu et écrivez uniquement :
-   ```text
-   set realmlist 127.0.0.1
-   ```
-5. Enregistrez et fermez le fichier.
-6. Lancez le jeu avec `Wow.exe` et connectez-vous avec vos identifiants !
+**2️⃣ Tapez `3` — Téléchargement des Data AzerothCore**
+
+Environ **1 Go** de fichiers. Laissez la fenêtre travailler, ça peut prendre **10 à 30 minutes** selon votre connexion. Ne fermez **pas** la fenêtre avant la fin.
+
+**3️⃣ Tapez `4` — Retour**
+
+Vous revenez au menu principal.
 
 ---
 
-<br>
+### 🎮 Étape 5 — Démarrer et jouer !
 
-## ❓ FAQ & Dépannage rapide
+Depuis le menu principal, tapez **`2`** puis **Entrée**.
 
-<details>
-<summary><b>🔴 Le WorldServer se ferme immédiatement au lancement ?</b></summary>
+**Trois fenêtres** vont s'ouvrir :
 
-* Vérifiez que vous avez bien téléchargé les **Data** (option `1` puis `3` du menu).
-* Assurez-vous que MySQL est bien démarré (fenêtre verte).
-* Vérifiez que vous n'avez pas déjà un autre serveur MySQL ou un logiciel comme WampServer / XAMPP qui tourne sur le port `3306`.
-</details>
+| Fenêtre | Rôle | Couleur |
+| :--- | :--- | :--- |
+| MySQL | La base de données (mémoire du serveur) | 🟢 |
+| AuthServer | Gère les connexions des joueurs | 🔵 |
+| WorldServer | Le monde de jeu | 🟣 |
 
-<details>
-<summary><b>🔴 Bloqué à « Connexion en cours » lors de la saisie du compte ?</b></summary>
+> ⏳ Attendez **environ 30 secondes** que tout démarre. La fenêtre **WorldServer** affichera `ready...` quand c'est bon.
 
-* Vérifiez que la fenêtre **AuthServer** est bien ouverte.
-* Assurez-vous que votre fichier `realmlist.wtf` contient bien `set realmlist 127.0.0.1` sans fautes.
-* Vérifiez que le pare-feu Windows ne bloque pas `authserver.exe` ou `worldserver.exe`.
-</details>
+**Créer votre compte de jeu :**
 
-<details>
-<summary><b>🔴 Comment arrêter proprement le serveur ?</b></summary>
+Dans la fenêtre **WorldServer**, tapez directement (sans menu, juste au clavier) :
 
-Dans la fenêtre **WorldServer**, tapez simplement `server shutdown 5` (il s'éteindra proprement en 5 secondes en sauvegardant les personnages), puis fermez les autres fenêtres.
-</details>
+```
+account create VOTRE_NOM VOTRE_MOT_DE_PASSE
+```
 
----
+Exemple :
+```
+account create Jean monmotdepasse123
+```
 
-<br>
-
-## 📁 Structure du Repack
-
-```text
-AzerothCore-Repack/
-│
-├── AzerothCore Repack.bat    # Lanceur principal interactif
-│
-├── _mysql/                   # Base de données MySQL 8.4 portable
-│   └── data/                 # Vos données et sauvegardes de jeu
-│
-├── _tools/                   # Utilitaires portables (curl, etc.)
-│
-└── azerothcore/              # Binaires et configuration du serveur
-    ├── authserver.exe        # Serveur de connexion
-    ├── worldserver.exe       # Cœur du monde de jeu
-    ├── configs/              # Configurations du serveur (.conf)
-    │   └── modules/          # Configurations des modules (mod-ale, playerbots)
-    ├── lua_scripts/          # Vos scripts Eluna Lua
-    └── data/                 # Données de cartes (DBC, maps, vmaps, mmaps)
+Pour vous donner les **droits de Maître du Jeu** (GM), tapez ensuite :
+```
+account set gmlevel Jean 3 -1
 ```
 
 ---
 
-<br>
+## 🕹️ Connecter votre jeu (client WoW 3.3.5a)
 
-## 💖 Remerciements
+Vous avez besoin du **client WoW 3.3.5a** installé quelque part sur votre PC.
 
-* [AzerothCore](https://www.azerothcore.org/)
-* [Mod-Playerbots](https://github.com/mod-playerbots/mod-playerbots)
+**Configurez-le pour qu'il se connecte à VOTRE serveur :**
+
+1. Ouvrez le dossier de votre client WoW 3.3.5a.
+2. Allez dans `Data` → `frFR` (ou `enUS` / `enGB` selon la langue).
+3. Ouvrez `realmlist.wtf` avec le **Bloc-notes**.
+4. Effacez tout et écrivez **une seule ligne** :
+   ```
+   set realmlist 127.0.0.1
+   ```
+5. **Enregistrez** et fermez.
+6. Lancez `Wow.exe`, connectez-vous avec votre compte créé à l'étape 5.
+
+> ✅ `127.0.0.1` = "mon propre PC". C'est l'adresse de votre serveur local.
+
+---
+
+## 🛟 Ça ne marche pas ?
+
+### 🔴 Le WorldServer se ferme tout seul
+
+* Avez-vous bien fait l'**étape 4** en entier (MySQL + Data) ?
+* La fenêtre **MySQL** (verte) est-elle bien ouverte ?
+* Avez-vous un autre logiciel qui utilise le port **3306** (WampServer, XAMPP…) ? Fermez-le.
+
+### 🔴 Bloqué sur "Connexion en cours"
+
+* La fenêtre **AuthServer** (bleue) est-elle ouverte ?
+* Votre fichier `realmlist.wtf` contient-il exactement `set realmlist 127.0.0.1` ?
+* Le pare-feu Windows demande une autorisation ? **Cliquez sur Autoriser**.
+
+### 🔴 Je veux arrêter le serveur
+
+Dans la fenêtre **WorldServer**, tapez :
+```
+server shutdown 5
+```
+
+Le serveur s'éteint proprement en 5 secondes. Fermez ensuite les autres fenêtres.
+
+---
+
+## 📁 À quoi ressemble le dossier ?
+
+```
+AzerothCore-Repack/
+│
+├── AzerothCore Repack.bat   ← Le menu (double-cliquez dessus)
+│
+├── _mysql/                  ← La base de données
+│
+├── _tools/                  ← Outils internes (ne pas toucher)
+│
+└── azerothcore/             ← Le serveur
+    ├── authserver.exe       ← Connexion des joueurs
+    ├── worldserver.exe      ← Le monde de jeu
+    ├── configs/             ← Réglages du serveur
+    ├── lua_scripts/         ← Vos scripts personnalisés
+    └── data/                ← Cartes et données du jeu
+```
+
+---
+
+<div align="center">
+
+**Bon jeu en Azeroth !** ⚔️
+
+*Remerciements :* [AzerothCore](https://www.azerothcore.org/) · [Mod-Playerbots](https://github.com/mod-playerbots/mod-playerbots)
+
+</div>
