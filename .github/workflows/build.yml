@@ -1,0 +1,84 @@
+name: Build AzerothCore Repacks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  build-azerothcore:
+    name: AzerothCore
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencies
+        shell: pwsh
+        run: .github/scripts/install-dependencies.ps1 -Variant AzerothCore
+
+      - name: Sources
+        shell: pwsh
+        run: .github/scripts/extract-sources.ps1 -Variant AzerothCore
+
+      - name: Modules
+        shell: pwsh
+        run: .github/scripts/setup-modules.ps1 -Variant AzerothCore
+
+      - name: Build
+        shell: pwsh
+        run: .github/scripts/build-server.ps1 -Variant AzerothCore
+
+      - name: Collect runtime
+        shell: pwsh
+        run: .github/scripts/collect-runtime.ps1 -Variant AzerothCore
+
+      - name: Package
+        shell: pwsh
+        run: .github/scripts/package-repack.ps1 -Variant AzerothCore
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-Repack-Windows-x64
+          path: AzerothCore-Repack-Windows-x64.zip
+
+  build-playerbots:
+    name: PlayerBots
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencies
+        shell: pwsh
+        run: .github/scripts/install-dependencies.ps1 -Variant PlayerBots
+
+      - name: Sources
+        shell: pwsh
+        run: .github/scripts/extract-sources.ps1 -Variant PlayerBots
+
+      - name: Modules
+        shell: pwsh
+        run: .github/scripts/setup-modules.ps1 -Variant PlayerBots
+
+      - name: Build
+        shell: pwsh
+        run: .github/scripts/build-server.ps1 -Variant PlayerBots
+
+      - name: Collect runtime
+        shell: pwsh
+        run: .github/scripts/collect-runtime.ps1 -Variant PlayerBots
+
+      - name: Package
+        shell: pwsh
+        run: .github/scripts/package-repack.ps1 -Variant PlayerBots
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-PlayerBots-Repack-Windows-x64
+          path: AzerothCore-PlayerBots-Repack-Windows-x64.zip
