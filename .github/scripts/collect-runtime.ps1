@@ -157,7 +157,8 @@ if (-not (Test-Path $runtimeMysqlDll)) {
 # Fallback : OpenSSL depuis une installation système
 $missingSsl = -not (
     (Test-Path (Join-Path $Runtime "libcrypto-3-x64.dll")) -and
-    (Test-Path (Join-Path $Runtime "libssl-3-x64.dll"))
+    (Test-Path (Join-Path $Runtime "libssl-3-x64.dll")) -and
+    (Test-Path (Join-Path $Runtime "legacy.dll"))
 )
 
 if ($missingSsl) {
@@ -168,7 +169,7 @@ if ($missingSsl) {
     )
     foreach ($dir in $opensslCandidates) {
         if (Test-Path $dir) {
-            foreach ($name in @("libcrypto-3-x64.dll", "libssl-3-x64.dll")) {
+            foreach ($name in @("libcrypto-3-x64.dll", "libssl-3-x64.dll", "legacy.dll")) {
                 $src = Join-Path $dir $name
                 $dst = Join-Path $Runtime $name
                 if ((Test-Path $src) -and (-not (Test-Path $dst))) {
