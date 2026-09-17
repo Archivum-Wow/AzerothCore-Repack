@@ -40,10 +40,11 @@ New-Item -ItemType Directory -Path $Runtime -Force | Out-Null
 $Executables = @(
     "authserver.exe",
     "worldserver.exe",
-    "mapextractor.exe",
-    "vmap4extractor.exe",
-    "vmap4assembler.exe",
-    "mmaps_generator.exe"
+    "map_extractor.exe",
+    "vmap4_extractor.exe",
+    "vmap4_assembler.exe",
+    "mmaps_generator.exe",
+    "mmaps-config.yaml"
 )
 
 foreach ($exe in $Executables) {
