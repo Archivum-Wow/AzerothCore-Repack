@@ -29,7 +29,7 @@ if ($zipFiles.Count -eq 0) {
     throw "No source ZIP files were found in $SourcesRoot"
 }
 
-$ExtractRoot = Join-Path $SourcesRoot "_extracted"
+$ExtractRoot = if ($env:GITHUB_ACTIONS) { "C:\ac_src" } else { Join-Path $SourcesRoot "_extracted" }
 
 if (Test-Path $ExtractRoot) {
     Remove-Item $ExtractRoot -Recurse -Force
@@ -148,6 +148,10 @@ if ($PlayerBotsSource) {
     $pbForward = $PlayerBotsSource.FullName.Replace("\", "/")
     "PLAYERBOTS_SOURCE=$pbForward" | Out-File $env:GITHUB_ENV -Append
 }
+
+$buildDir = if ($env:GITHUB_ACTIONS) { "C:\ac_build" } else { Join-Path $CoreSource "build" }
+$buildForward = $buildDir.Replace("\", "/")
+"CORE_BUILD=$buildForward" | Out-File $env:GITHUB_ENV -Append
 
 Write-Host ""
 Write-Host "[OK] Source extraction completed."

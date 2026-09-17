@@ -156,6 +156,8 @@ AzerothCore-Repack/
 └── azerothcore/              # Binaires et configuration du serveur
     ├── authserver.exe        # Serveur de connexion
     ├── worldserver.exe       # Cœur du monde de jeu
+    ├── configs/              # Configurations du serveur (.conf)
+    │   └── modules/          # Configurations des modules (mod-ale, playerbots)
     ├── lua_scripts/          # Vos scripts Eluna Lua
     └── data/                 # Données de cartes (DBC, maps, vmaps, mmaps)
 ```

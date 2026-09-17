@@ -7,10 +7,15 @@ param(
 $ErrorActionPreference = "Stop"
 
 $Source = $env:CORE_SOURCE
-$Build = Join-Path $Source "build"
+$Build = $env:CORE_BUILD
+if (-not $Build) {
+    $Build = if ($env:GITHUB_ACTIONS) { "C:\ac_build" } else { Join-Path $Source "build" }
+}
 
 Write-Host "========================================"
 Write-Host " Building: $Variant"
+Write-Host " Source:   $Source"
+Write-Host " Build:    $Build"
 Write-Host "========================================"
 
 if (Test-Path $Build) {
@@ -24,7 +29,8 @@ Push-Location $Build
 try {
 
     $args = @(
-        ".."
+        "-S", $Source
+        "-B", "."
         "-G", "Visual Studio 17 2022"
         "-A", "x64"
         "-DCMAKE_BUILD_TYPE=Release"
