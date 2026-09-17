@@ -1,6 +1,6 @@
 # ⚔️ AzerothCore Repack - Windows x64 (WotLK 3.3.5a)
 
-<center>
+<div align="center">
 
 [![WoW Version](https://img.shields.io/badge/WoW-3.3.5a%20(12340)-gold?style=for-the-badge&logo=battlenet&logoColor=white)](https://github.com/azerothcore/azerothcore-wotlk)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-informational?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com)
@@ -10,7 +10,7 @@ Ce projet vous permet de lancer votre propre serveur privé **World of Warcraft 
 
 Tout est automatisé : la base de données est autonome (rien à installer), et un menu simple vous guide du début à la fin.
 
-</center>
+</div>
 
 ---
 
