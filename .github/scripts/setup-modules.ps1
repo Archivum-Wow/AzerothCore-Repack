@@ -44,7 +44,7 @@ if ($Variant -eq "PlayerBots") {
 }
 
 Write-Host ""
-Write-Host "[OK] Modules installed in $Modules:"
+Write-Host "[OK] Modules installed in: $Modules"
 Get-ChildItem $Modules -Directory |
     ForEach-Object {
         Write-Host "  - $($_.Name)"
