@@ -1,16 +1,20 @@
-# ⚔️ AzerothCore Repack — Windows x64 (WotLK 3.3.5a)
+# ⚔️ AzerothCore Repack - Windows x64 (WotLK 3.3.5a)
 
-[![Build Status](https://img.shields.io/badge/Build-Automated%20CI-blue?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com)
+<center>
+
 [![WoW Version](https://img.shields.io/badge/WoW-3.3.5a%20(12340)-gold?style=for-the-badge&logo=battlenet&logoColor=white)](https://github.com/azerothcore/azerothcore-wotlk)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-informational?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com)
-[![MySQL](https://img.shields.io/badge/Database-MySQL%208.4%20Portable-orange?style=for-the-badge&logo=mysql&logoColor=white)](https://dev.mysql.com)
 
-Bienvenue sur le **Repack AzerothCore 100% portable** pour Windows !  
+Bienvenue sur le **Repack AzerothCore 100% portable** pour Windows !<br>
 Ce projet vous permet de lancer votre propre serveur privé **World of Warcraft : Wrath of the Lich King (3.3.5a)** en quelques clics, **sans aucune connaissance technique requise**.
 
-Tout est automatisé : la base de données est autonome (aucun WAMP / XAMPP à installer), et un menu simple vous guide du début à la fin.
+Tout est automatisé : la base de données est autonome (rien à installer), et un menu simple vous guide du début à la fin.
+
+</center>
 
 ---
+
+<br>
 
 ## 🎯 Choisissez votre version
 
@@ -22,6 +26,8 @@ Deux déclinaisons compilées et mises à jour automatiquement sont disponibles 
 | **🤖 AzerothCore PlayerBots** | Intègre AzerothCore + **mod-ale** + **mod-playerbots**. Des bots autonomes parcourent le monde, groupent avec vous, font des donjons et du PvP ! | **Le jeu 100% solo** ou en petit comité d'amis avec un monde plein de vie. |
 
 ---
+
+<br>
 
 ## 🚀 Guide pas-à-pas pour les débutants
 
@@ -36,6 +42,8 @@ Suivez ces 5 étapes simples pour jouer en moins de 10 minutes !
 
 ---
 
+<br>
+
 ### Étape 2 : Extraire l'archive
 1. Faites un clic droit sur le fichier ZIP téléchargé > **Extraire tout...**
 2. Choisissez un dossier simple sur votre disque dur.
@@ -43,6 +51,8 @@ Suivez ces 5 étapes simples pour jouer en moins de 10 minutes !
    > *Exemple recommandé :* `C:\Jeux\WoW-Repack` ou `D:\AzerothCore`
 
 ---
+
+<br>
 
 ### Étape 3 : Lancer le panneau de contrôle
 Dans le dossier extrait, double-cliquez sur :
@@ -64,6 +74,8 @@ Une fenêtre s'ouvre avec un menu interactif :
 
 ---
 
+<br>
+
 ### Étape 4 : Première installation (À faire une seule fois !)
 Tapez `1` puis validez avec la touche **Entrée** pour accéder au sous-menu **Installations** :
 
@@ -75,6 +87,8 @@ Tapez `1` puis validez avec la touche **Entrée** pour accéder au sous-menu **I
 3. Tapez `4` pour revenir au menu principal.
 
 ---
+
+<br>
 
 ### Étape 5 : Lancer le serveur et jouer !
 
@@ -99,6 +113,8 @@ Tapez `1` puis validez avec la touche **Entrée** pour accéder au sous-menu **I
 
 ---
 
+<br>
+
 ## 🎮 Configurer votre jeu World of Warcraft (Client 3.3.5a)
 
 Pour vous connecter au serveur depuis votre client World of Warcraft :
@@ -114,6 +130,8 @@ Pour vous connecter au serveur depuis votre client World of Warcraft :
 6. Lancez le jeu avec `Wow.exe` et connectez-vous avec vos identifiants !
 
 ---
+
+<br>
 
 ## ❓ FAQ & Dépannage rapide
 
@@ -141,6 +159,8 @@ Dans la fenêtre **WorldServer**, tapez simplement `server shutdown 5` (il s'ét
 
 ---
 
+<br>
+
 ## 📁 Structure du Repack
 
 ```text
@@ -164,7 +184,9 @@ AzerothCore-Repack/
 
 ---
 
+<br>
+
 ## 💖 Remerciements
 
-* [AzerothCore](https://www.azerothcore.org/) — Pour cet incroyable émulateur open-source et son travail colossal.
-* [Mod-Playerbots](https://github.com/mod-playerbots/mod-playerbots) — Pour l'intelligence artificielle des bots.
+* [AzerothCore](https://www.azerothcore.org/)
+* [Mod-Playerbots](https://github.com/mod-playerbots/mod-playerbots)

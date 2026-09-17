@@ -8,11 +8,9 @@ $ErrorActionPreference = "Stop"
 
 $Modules = Join-Path $env:CORE_SOURCE "modules"
 
-if (Test-Path $Modules) {
-    Remove-Item $Modules -Recurse -Force
+if (-not (Test-Path $Modules)) {
+    throw "AzerothCore modules directory not found: $Modules"
 }
-
-New-Item -ItemType Directory -Path $Modules | Out-Null
 
 function Copy-Module {
     param(
@@ -26,7 +24,11 @@ function Copy-Module {
 
     $Destination = Join-Path $Modules $Name
 
-    Write-Host "[Module] $Name"
+    if (Test-Path $Destination) {
+        Remove-Item $Destination -Recurse -Force
+    }
+
+    Write-Host "[Module] Installing $Name..."
 
     Copy-Item `
         -Path $Source `
@@ -42,7 +44,7 @@ if ($Variant -eq "PlayerBots") {
 }
 
 Write-Host ""
-Write-Host "[OK] Modules installed:"
+Write-Host "[OK] Modules installed in $Modules:"
 Get-ChildItem $Modules -Directory |
     ForEach-Object {
         Write-Host "  - $($_.Name)"
