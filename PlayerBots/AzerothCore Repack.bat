@@ -10,7 +10,7 @@ set "MYSQL_START=%ROOT%_mysql\mysql_start.bat"
 set "MYSQL_INSTALL=%ROOT%_mysql\install_mysql.bat"
 
 set "SOURCES_DOWNLOAD=%ROOT%_sources\download_sources.bat"
-set "DATA_DOWNLOAD=%ROOT%data\download_data.bat"
+set "DATA_DOWNLOAD=%ROOT%azerothcore\data\download_data.bat"
 
 set "WORLDSERVER=%ROOT%azerothcore\worldserver.exe"
 set "AUTHSERVER=%ROOT%azerothcore\authserver.exe"

@@ -110,7 +110,22 @@ if (-not $boostRoot) {
 }
 
 if (-not $boostRoot) {
-    throw "BOOST_ROOT was not found on the runner."
+    Write-Host "[Boost] Not found in environment or default paths. Installing boost-msvc-14.3 via Chocolatey..."
+    $choco = Get-Command choco -ErrorAction SilentlyContinue
+    if ($choco) {
+        & choco install boost-msvc-14.3 -y --no-progress
+        $found = Get-ChildItem "C:\local\boost_*" -Directory -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+
+        if ($found) {
+            $boostRoot = $found.FullName
+        }
+    }
+}
+
+if (-not $boostRoot) {
+    throw "BOOST_ROOT was not found on the runner, and automatic fallback installation failed."
 }
 
 $env:BOOST_ROOT = $boostRoot
