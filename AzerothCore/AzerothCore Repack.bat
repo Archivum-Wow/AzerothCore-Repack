@@ -6,11 +6,11 @@ title AzerothCore Repack
 
 set "ROOT=%~dp0"
 
-set "MYSQL_START=%ROOT%_mysql\mysql_start.bat"
-set "MYSQL_INSTALL=%ROOT%_mysql\install_mysql.bat"
+set "MYSQL_START=%ROOT%_mysql\mysql_start.ps1"
+set "MYSQL_INSTALL=%ROOT%_mysql\install_mysql.ps1"
 
-set "SOURCES_DOWNLOAD=%ROOT%_sources\download_sources.bat"
-set "DATA_DOWNLOAD=%ROOT%azerothcore\data\download_data.bat"
+set "SOURCES_DOWNLOAD=%ROOT%_sources\download_sources.ps1"
+set "DATA_DOWNLOAD=%ROOT%azerothcore\data\download_data.ps1"
 
 set "WORLDSERVER=%ROOT%azerothcore\worldserver.exe"
 set "AUTHSERVER=%ROOT%azerothcore\authserver.exe"
@@ -105,8 +105,7 @@ if not exist "%MYSQL_INSTALL%" (
 echo  Lancement de l'installation MySQL...
 echo.
 
-start "AzerothCore - Installation MySQL" cmd /k ^
-    call "%MYSQL_INSTALL%"
+start "AzerothCore - Installation MySQL" powershell -NoProfile -ExecutionPolicy Bypass -File "%MYSQL_INSTALL%"
 
 echo  [OK] Installation lancée dans un nouveau terminal.
 echo.
@@ -140,8 +139,7 @@ if not exist "%SOURCES_DOWNLOAD%" (
 echo  Lancement du téléchargement des sources...
 echo.
 
-start "AzerothCore - Sources" cmd /k ^
-    call "%SOURCES_DOWNLOAD%"
+start "AzerothCore - Sources" powershell -NoProfile -ExecutionPolicy Bypass -File "%SOURCES_DOWNLOAD%"
 
 echo  [OK] Téléchargement lancé dans un nouveau terminal.
 echo.
@@ -175,8 +173,7 @@ if not exist "%DATA_DOWNLOAD%" (
 echo  Lancement du téléchargement des Data...
 echo.
 
-start "AzerothCore - Data" cmd /k ^
-    call "%DATA_DOWNLOAD%"
+start "AzerothCore - Data" powershell -NoProfile -ExecutionPolicy Bypass -File "%DATA_DOWNLOAD%"
 
 echo  [OK] Téléchargement lancé dans un nouveau terminal.
 echo.
@@ -239,8 +236,7 @@ echo.
 echo  [1/3] Démarrage de MySQL...
 echo.
 
-start "AzerothCore - MySQL" cmd /k ^
-    call "%MYSQL_START%"
+start "AzerothCore - MySQL" powershell -NoProfile -ExecutionPolicy Bypass -File "%MYSQL_START%"
 
 echo  [OK] MySQL lancé.
 echo.

@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $Root = $env:GITHUB_WORKSPACE
 $RepackRoot = Join-Path $Root $Variant
 $SourcesRoot = Join-Path $RepackRoot "_sources"
-$DownloadScript = Join-Path $SourcesRoot "download_sources.bat"
+$DownloadScript = Join-Path $SourcesRoot "download_sources.ps1"
 
 Write-Host "========================================"
 Write-Host " Extracting sources: $Variant"
@@ -19,19 +19,9 @@ if (-not (Test-Path $DownloadScript)) {
     throw "Source download script not found: $DownloadScript"
 }
 
-Write-Host "[Sources] Running download_sources.bat..."
+Write-Host "[Sources] Running download_sources.ps1..."
 
-$process = Start-Process `
-    -FilePath "cmd.exe" `
-    -ArgumentList "/c `"$DownloadScript`"" `
-    -WorkingDirectory $SourcesRoot `
-    -Wait `
-    -PassThru `
-    -NoNewWindow
-
-if ($process.ExitCode -ne 0) {
-    throw "download_sources.bat failed with exit code $($process.ExitCode)"
-}
+& $DownloadScript -NonInteractive
 
 $zipFiles = Get-ChildItem $SourcesRoot -Filter "*.zip" -File
 

@@ -22,7 +22,7 @@ if (-not (Test-Path $RepackRoot)) {
 # ------------------------------------------------------------
 
 $MysqlRoot = Join-Path $RepackRoot "_mysql"
-$MysqlInstall = Join-Path $MysqlRoot "install_mysql.bat"
+$MysqlInstall = Join-Path $MysqlRoot "install_mysql.ps1"
 $MysqlServer = Join-Path $MysqlRoot "server"
 
 if (-not (Test-Path $MysqlInstall)) {
@@ -32,17 +32,7 @@ if (-not (Test-Path $MysqlInstall)) {
 Write-Host ""
 Write-Host "[MySQL] Running existing installer..."
 
-$process = Start-Process `
-    -FilePath "cmd.exe" `
-    -ArgumentList "/c `"$MysqlInstall`"" `
-    -WorkingDirectory $MysqlRoot `
-    -Wait `
-    -PassThru `
-    -NoNewWindow
-
-if ($process.ExitCode -ne 0) {
-    throw "MySQL installer failed with exit code $($process.ExitCode)"
-}
+& $MysqlInstall -NonInteractive
 
 if (-not (Test-Path $MysqlServer)) {
     throw "MySQL server directory was not created: $MysqlServer"
