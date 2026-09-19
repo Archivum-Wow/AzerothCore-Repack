@@ -1,0 +1,219 @@
+name: Build AzerothCore Repacks
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if no new commits'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+env:
+  TRACKFILEACCESS: 'false'
+
+jobs:
+  check-updates:
+    name: Check & Update Commits
+    runs-on: windows-2022
+    outputs:
+      ac_changed: ${{ steps.check.outputs.ac_changed }}
+      pb_changed: ${{ steps.check.outputs.pb_changed }}
+      force_build: ${{ steps.check.outputs.force_build }}
+      commits_json: ${{ steps.check.outputs.commits_json }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check and update repo commits
+        id: check
+        shell: pwsh
+        env:
+          FORCE_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.force_build || 'false' }}
+        run: .github/scripts/update-commits.ps1
+
+      - name: Commit and push updated scripts
+        if: steps.check.outputs.ac_changed == 'true' || steps.check.outputs.pb_changed == 'true'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AzerothCore/_sources/download_sources.ps1 PlayerBots/_sources/download_sources.ps1
+          git commit -m "chore(deps): update source commit hashes [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+
+  build-azerothcore:
+    name: AzerothCore
+    needs: check-updates
+    if: needs.check-updates.outputs.force_build == 'true' || needs.check-updates.outputs.ac_changed == 'true'
+    runs-on: windows-2022
+
+    steps:
+      - name: Enable Long Paths
+        shell: pwsh
+        run: |
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install Boost
+        id: install-boost
+        uses: MarkusJx/install-boost@v2
+        with:
+          boost_version: '1.83.0'
+          platform_version: 2022
+          toolset: msvc
+
+      - name: Dependencies
+        shell: pwsh
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: .github/scripts/install-dependencies.ps1 -Variant AzerothCore
+
+      - name: Sources
+        shell: pwsh
+        run: .github/scripts/extract-sources.ps1 -Variant AzerothCore
+
+      - name: Modules
+        shell: pwsh
+        run: .github/scripts/setup-modules.ps1 -Variant AzerothCore
+
+      - name: Build
+        shell: pwsh
+        run: .github/scripts/build-server.ps1 -Variant AzerothCore
+
+      - name: Collect runtime
+        shell: pwsh
+        run: .github/scripts/collect-runtime.ps1 -Variant AzerothCore
+
+      - name: Package
+        shell: pwsh
+        run: .github/scripts/package-repack.ps1 -Variant AzerothCore
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-Repack-Windows-x64
+          path: AzerothCore-Repack-Windows-x64.zip
+
+  build-playerbots:
+    name: PlayerBots
+    needs: check-updates
+    if: needs.check-updates.outputs.force_build == 'true' || needs.check-updates.outputs.pb_changed == 'true'
+    runs-on: windows-2022
+
+    steps:
+      - name: Enable Long Paths
+        shell: pwsh
+        run: |
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install Boost
+        id: install-boost
+        uses: MarkusJx/install-boost@v2
+        with:
+          boost_version: '1.83.0'
+          platform_version: 2022
+          toolset: msvc
+
+      - name: Dependencies
+        shell: pwsh
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: .github/scripts/install-dependencies.ps1 -Variant PlayerBots
+
+      - name: Sources
+        shell: pwsh
+        run: .github/scripts/extract-sources.ps1 -Variant PlayerBots
+
+      - name: Modules
+        shell: pwsh
+        run: .github/scripts/setup-modules.ps1 -Variant PlayerBots
+
+      - name: Build
+        shell: pwsh
+        run: .github/scripts/build-server.ps1 -Variant PlayerBots
+
+      - name: Collect runtime
+        shell: pwsh
+        run: .github/scripts/collect-runtime.ps1 -Variant PlayerBots
+
+      - name: Package
+        shell: pwsh
+        run: .github/scripts/package-repack.ps1 -Variant PlayerBots
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzerothCore-PlayerBots-Repack-Windows-x64
+          path: AzerothCore-PlayerBots-Repack-Windows-x64.zip
+
+  release:
+    name: Release
+    needs: [check-updates, build-azerothcore, build-playerbots]
+    # always() : les jobs de build sont conditionnels, on publie ce qui a reussi
+    if: >-
+      always() &&
+      (needs.build-azerothcore.result == 'success' ||
+       needs.build-playerbots.result == 'success')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          COMMITS_JSON: ${{ needs.check-updates.outputs.commits_json }}
+          RESULT_AC: ${{ needs.build-azerothcore.result }}
+          RESULT_PB: ${{ needs.build-playerbots.result }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $built = @()
+          if ($env:RESULT_AC -eq 'success') { $built += 'AzerothCore' }
+          if ($env:RESULT_PB -eq 'success') { $built += 'PlayerBots' }
+
+          $existing = @(gh release list --limit 200 --json tagName --jq '.[].tagName')
+          if ($LASTEXITCODE -ne 0) { throw "Impossible de lister les releases existantes." }
+
+          $base = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
+          $tag = $base
+          $suffix = 1
+          while ($existing -contains $tag) {
+            $suffix++
+            $tag = "$base.$suffix"
+          }
+
+          $json = $env:COMMITS_JSON
+          if ([string]::IsNullOrWhiteSpace($json)) { $json = '{}' }
+
+          & .github/scripts/build-release-notes.ps1 -CommitsJson $json -Tag $tag -Built ($built -join ',') -OutFile release-notes.md
+
+          $assets = @(Get-ChildItem dist -Recurse -Filter *.zip | ForEach-Object { $_.FullName })
+          if ($assets.Count -eq 0) { throw "Aucune archive a publier." }
+
+          gh release create $tag @assets --title "Repack $tag" --notes-file release-notes.md
+          if ($LASTEXITCODE -ne 0) { throw "Echec de la creation de la release $tag." }
+
+          Write-Host "[Release] Publiee : $tag ($($assets.Count) archive(s))"
