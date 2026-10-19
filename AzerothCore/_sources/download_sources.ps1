@@ -9,7 +9,7 @@ $RepackRoot = Split-Path $Sources -Parent
 $ToolsRoot = Join-Path $RepackRoot "_tools"
 $CurlExe = Join-Path $ToolsRoot "curl-8.22.0_1-win64-mingw\curl.exe"
 
-$AcCommit = "77f88f75c87bd7e3eeed01f8a05f0c7d8f086e2a"
+$AcCommit = "39fd1165d9cf7433171bb19739b92d96590d4e55"
 $AleCommit = "84b85cc55980dbf67d596f3d5cb34ded10c59102"
 
 $AcZip = Join-Path $Sources "azerothcore-wotlk.zip"
